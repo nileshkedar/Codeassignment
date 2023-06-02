@@ -1,0 +1,15 @@
+FROM php:7.4-apache
+ARG WORDPRESS_VERSION=5.8
+ARG WORDPRESS_SHA1=ca2e8b6e5fb68322de76c59b8a583d8f3e5a7ce6
+WORKDIR /var/www/html
+COPY wordpress-${WORDPRESS_VERSION}.tar.gz ./
+RUN tar -xzf wordpress-${WORDPRESS_VERSION}.tar.gz && \
+    rm wordpress-${WORDPRESS_VERSION}.tar.gz && \
+    chown -R www-data:www-data wordpress
+COPY apache-config.conf /etc/apache2/sites-available/000-default.conf
+RUN a2enmod rewrite
+ENV APACHE_DOCUMENT_ROOT /var/www/html/wordpress
+RUN sed -i "s|/var/www/html|${APACHE_DOCUMENT_ROOT}|" /etc/apache2/sites-available/000-default.conf && \
+    sed -i "s|/var/www|${APACHE_DOCUMENT_ROOT}|" /etc/apache2/apache2.conf
+ENTRYPOINT ["docker-php-entrypoint"]
+CMD ["apache2-foreground"]
